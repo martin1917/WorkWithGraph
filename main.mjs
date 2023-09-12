@@ -49,7 +49,8 @@ const onDoubleTapNode = (event) => {
 /**
  * регистрация всех обработчиков
  */
-const registerEventHandlers = (cy) => {
+const registerEventHandlers = () => {
+    const cy = window.cy;
     cy.on('ehcomplete', onEdgeCreated);
     cy.on('dbltap', 'node', onDoubleTapNode);
 }
@@ -57,10 +58,10 @@ const registerEventHandlers = (cy) => {
 /**
  * создание контекстного меню
  */
-const createContextMenu = (cy) => {
-    let removed;    
-    const eh = cy.edgehandles();
-    return cy.contextMenus({
+const createContextMenu = () => {
+    let removed;
+    const cy = window.cy;
+    const contextMenu = cy.contextMenus({
         menuItems: [
             {
                 id: 'remove',
@@ -96,7 +97,7 @@ const createContextMenu = (cy) => {
                 image: {src: "assets/add.svg", width: 12, height: 12, x: 6, y: 4},
                 coreAsWell: true,
                 onClickFunction: function (event) {
-                    const name = prompt('write vertex\'s name');
+                    const name = prompt('Имя вершины');
                     if (name == null || name.trim().length == 0) return;
 
                     const data = {
@@ -114,37 +115,89 @@ const createContextMenu = (cy) => {
                         }
                     });
                 }
-            },
-
-            {
-                id: 'add-edge-mode',
-                content: 'Режим "Добавления ребер"',
-                coreAsWell: true,
-                onClickFunction: function (event) {
-                    eh.enableDrawMode();    
-                    contextMenu.hideMenuItem('add-edge-mode');
-                    contextMenu.showMenuItem('move-node-mode');
-                }
-            },
-    
-            {
-                id: 'move-node-mode',
-                content: 'Режим "Перемещения вершин"',
-                coreAsWell: true,
-                show: false,
-                onClickFunction: function (event) {
-                    eh.disableDrawMode();    
-                    contextMenu.hideMenuItem('move-node-mode');
-                    contextMenu.showMenuItem('add-edge-mode');
-                }
             }
         ]
     });
 }
 
+/**
+ * Создание обработчика для изменения режима 
+ * (добавление ребер <-> перемещение вершин)
+ */
+const changeMode = () => {
+    let isMovingNodeMode = true;
+    const eh = cy.edgehandles();
+    return (event) => {
+        if (isMovingNodeMode) {
+            document.querySelector('#change-mode-btn').innerHTML = 'Выкл. режим "Добавление ребер"';
+            document.querySelector('#state-information').innerHTML = 'Добавление ребер';
+            eh.enableDrawMode();
+        } else {
+            document.querySelector('#change-mode-btn').innerHTML = 'Вкл. режим "Добавление ребер"';
+            document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
+            eh.disableDrawMode();
+        }
+        isMovingNodeMode = !isMovingNodeMode;
+    };
+}
+
+const tapOnNode = () => {
+    let fromVertex = null;
+    let toVertex = null;
+    
+    return (event) => {        
+        if (fromVertex == null && toVertex == null) {
+            fromVertex = event.target;
+            fromVertex.style('background-color', 'lightgreen');
+            const text = `Выберите вторую вершину (${fromVertex.data('name')} -> )`;
+            document.querySelector('#state-information').innerHTML = text;
+        }
+        else if (fromVertex != null && toVertex == null) {
+            if (event.target == fromVertex) {
+                fromVertex.style('background-color', defaultNodeStyle.style["background-color"]);
+                document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
+                fromVertex = null;
+            } else {
+                toVertex = event.target;
+                toVertex.style('background-color', 'lightgreen');
+                const text = `Вершины выбраны (${fromVertex.data('name')} -> ${toVertex.data('name')})`;
+                document.querySelector('#state-information').innerHTML = text;
+            }
+        }
+        else if (fromVertex != null && toVertex != null) {
+            if (event.target == toVertex) {
+                toVertex.style('background-color', defaultNodeStyle.style["background-color"]);
+                const text = `Выберите вторую вершину (${fromVertex.data('name')} -> )`;
+                document.querySelector('#state-information').innerHTML = text;
+                toVertex = null;
+            }    
+            if (event.target == fromVertex) {
+                fromVertex.style('background-color', defaultNodeStyle.style["background-color"]);
+                fromVertex = toVertex;
+                toVertex = null;
+                const text = `Выберите вторую вершину (${fromVertex.data('name')} -> )`;
+                document.querySelector('#state-information').innerHTML = text;
+            }
+        }
+
+        console.log(`FROM ${fromVertex != null ? fromVertex.data('name') : 'нет'}`);
+        console.log(`TO ${toVertex != null ? toVertex.data('name') : 'нет'}`);
+        console.log('-----------------------------');
+    }
+}
+
+let tmp = null;
+const onClickFindMinPath = (event) => {
+    const cy = window.cy;
+    document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
+    cy.nodes().lock();
+    tmp = tapOnNode();
+    cy.addListener('tap', 'node', tmp);
+}
+
 const main = () => {
     const cy = window.cy = cytoscape({
-        container: document.getElementById('cy'),
+        container: document.querySelector('.cy'),
         layout: { name: 'breadthfirst' },
         style: [
             defaultNodeStyle,
@@ -156,8 +209,18 @@ const main = () => {
         ]
     });
 
-    registerEventHandlers(cy);
-    createContextMenu(cy);
+    registerEventHandlers();
+    createContextMenu();
+
+    document.querySelector('#change-mode-btn').addEventListener('click', changeMode());
+    document.querySelector('#find-min-path-btn').addEventListener('click', onClickFindMinPath);
+    document.querySelector('#cancel-finding-btn').addEventListener('click', (event) => {
+        if (tmp != null) {
+            cy.removeListener('tap', 'node', tmp);
+            cy.nodes().unlock();
+            cy.nodes().style("background-color", defaultNodeStyle.style["background-color"]);
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', main);
