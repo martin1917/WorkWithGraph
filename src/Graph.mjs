@@ -1,4 +1,5 @@
 import Vertex from './Vertex.mjs'
+import DijkstraResult from './DijkstraResult.mjs'
 
 export default class Graph {
     constructor() {
@@ -40,14 +41,14 @@ export default class Graph {
 
         if (err.length != 0) {
             console.log(`не удалось расчитать минимальный путь.\n${err}`);
-            return;
+            return null;
         }
 
         const N = this.matrix.length;
         
         // минимальные расстояния до всех вершин из заданной
-        const dist = new Array(N).fill(Number.MAX_VALUE);
-        dist[fromVertex.index] = 0;
+        const distances = new Array(N).fill(Number.MAX_VALUE);
+        distances[fromVertex.index] = 0;
 
         // переходы
         const steps = {};
@@ -62,9 +63,9 @@ export default class Graph {
             const neighbors = this.getNeighborIndexes(cur);
             for (let neighbor of neighbors) {
                 if (visitted.indexOf(neighbor) == -1) {
-                    const newWeight = dist[cur] + this.matrix[cur][neighbor];
-                    if (newWeight < dist[neighbor]) {
-                        dist[neighbor] = newWeight;
+                    const newWeight = distances[cur] + this.matrix[cur][neighbor];
+                    if (newWeight < distances[neighbor]) {
+                        distances[neighbor] = newWeight;
                         steps[neighbor] = cur;
                     }
                 }
@@ -73,9 +74,9 @@ export default class Graph {
             // выбор следующей вершины с минимальным расстоянием
             let currentMinDist = Number.MAX_VALUE;
             let nextVertex = -1;
-            for (let i = 0; i < dist.length; i++) {
-                if (visitted.indexOf(i) == -1 && dist[i] < currentMinDist) {
-                    currentMinDist = dist[i];
+            for (let i = 0; i < distances.length; i++) {
+                if (visitted.indexOf(i) == -1 && distances[i] < currentMinDist) {
+                    currentMinDist = distances[i];
                     nextVertex = i;
                 }
             }
@@ -88,17 +89,14 @@ export default class Graph {
         
         // восстановление кратчайшего пути
         const path = [to];
-        let v = toVertex.index;
-        while (steps[v] != -1) {
-            const prevVertex = this.vertexes.filter(x => x.index == steps[v])[0]
+        let index = toVertex.index;
+        while (steps[index] != -1) {
+            const prevVertex = this.vertexes.filter(x => x.index == steps[index])[0]
             path.push(prevVertex.label);
-            v = steps[v];
+            index = steps[index];
         }
         
-        return {
-            minDist: dist[toVertex.index],
-            path: path.reverse()
-        };
+        return new DijkstraResult(distances[toVertex.index], path.reverse());
     }
 
     /**
@@ -229,3 +227,29 @@ export default class Graph {
         }
     }
 }
+
+// import Graph from "./src/Graph.mjs";
+
+// const main = () => {
+//     const graph = new Graph();
+//     graph.addVertex('a');
+//     graph.addVertex('b');
+//     graph.addVertex('c');
+//     graph.addVertex('d');
+//     graph.addVertex('e');
+
+//     graph.addEdge('a', 'b', 10);
+//     graph.addEdge('a', 'e', 100);
+//     graph.addEdge('a', 'd', 30);
+//     graph.addEdge('b', 'c', 50);
+//     graph.addEdge('c', 'e', 10);
+//     graph.addEdge('d', 'c', 20);
+//     graph.addEdge('d', 'e', 60);
+
+//     console.log(graph.matrix);
+
+//     const res = graph.dijkstra('a', 'e');
+//     console.log(res);
+// };
+
+// main();
