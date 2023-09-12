@@ -1,18 +1,7 @@
 import Graph from "./src/Graph.mjs";
-import {selectedElementStyle} from "./graphStyles.mjs";
-import {defaultEdgeStyle} from "./graphStyles.mjs";
-import {defaultNodeStyle} from "./graphStyles.mjs";
-import {ehGhostPreviewEdgeActiveStyle} from "./edgeHandlesStyles.mjs";
-import {ehPreviewAndGhostEdgeStyle} from "./edgeHandlesStyles.mjs";
-import {ehNodeStyle} from "./edgeHandlesStyles.mjs";
+import {selectedElementStyle, defaultEdgeStyle, defaultNodeStyle} from "./graphStyles.mjs";
+import {ehGhostPreviewEdgeActiveStyle, ehPreviewAndGhostEdgeStyle, ehNodeStyle} from "./edgeHandlesStyles.mjs";
 
-/**
- * обработчик, вызываемый при создании ребра между вершинами
- * @param {*} event объект события
- * @param {*} sourceNode начальная вершина
- * @param {*} targetNode конечная вершина
- * @param {*} addedEdge созданное ребро
- */
 const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
     const res = prompt('Вес ребра');
     if (res == null || res.trim().length == 0) {
@@ -32,10 +21,6 @@ const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
     }
 }
 
-/**
- * обработчик вызываемый при двойнном нажатии на вершину
- * @param {*} event объект события
- */
 const onDoubleTapNode = (event) => {
     const vertex = event.target;    
     const name = prompt('Имя вершины', vertex.data('name'));
@@ -43,17 +28,11 @@ const onDoubleTapNode = (event) => {
     vertex.data('name', name);
 }
 
-/**
- * регистрация всех обработчиков
- */
-const registerEventHandlers = () => {
+const registerGraphEventHandlers = () => {
     cy.on('ehcomplete', onEdgeCreated);
     cy.on('dbltap', 'node', onDoubleTapNode);
 }
 
-/**
- * создание контекстного меню
- */
 const createContextMenu = () => {
     let removed;
     const contextMenu = cy.contextMenus({
@@ -94,14 +73,8 @@ const createContextMenu = () => {
                 onClickFunction: function (event) {
                     const name = prompt('Имя вершины');
                     if (name == null || name.trim().length == 0) return;
-
-                    const data = {
-                        group: 'nodes',
-                        name: name
-                    };
-                    
-                    const pos = event.position || event.cyPosition;
-                    
+                    const data = { group: 'nodes', name: name };                    
+                    const pos = event.position || event.cyPosition;                    
                     cy.add({
                         data: data,
                         position: {
@@ -115,10 +88,6 @@ const createContextMenu = () => {
     });
 }
 
-/**
- * обработчик для изменения режима 
- * (добавление ребер <-> перемещение вершин)
-*/
 const onChangeModeHandler = (event) => {
     if (isMovingNodeMode) {
         document.querySelector('#change-mode-btn').innerHTML = 'Выкл. режим "Добавление ребер"';
@@ -132,11 +101,6 @@ const onChangeModeHandler = (event) => {
     isMovingNodeMode = !isMovingNodeMode;
 }
 
-
-
-/**
- * Создание обработчика при нажатии на вершину графа
- */
 const onTapOnNodeHandler = (event) => {
     if (pathPlan.fromVertex == null && pathPlan.toVertex == null) {
         pathPlan.fromVertex = event.target;
@@ -171,35 +135,47 @@ const onTapOnNodeHandler = (event) => {
             document.querySelector('#state-information').innerHTML = text;
         }
     }
-
-    console.log(`FROM ${pathPlan.fromVertex != null ? pathPlan.fromVertex.data('name') : 'нет'}`);
-    console.log(`TO ${pathPlan.toVertex != null ? pathPlan.toVertex.data('name') : 'нет'}`);
-    console.log('-----------------------------');
 }
 
-/**
- * Обработчик при выборе двух вершин для поиска
- */
 const onClickFindMinPath = (event) => {
-    document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
     cy.nodes().lock();
     cy.addListener('tap', 'node', onTapOnNodeHandler);
+    document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';    
+
+    document.querySelector('#solve-dijkstra-btn').style.display = 'inline-block';
+    document.querySelector('#cancel-finding-btn').style.display = 'inline-block';
+    document.querySelector('#change-mode-btn').style.display = 'none';
+    document.querySelector('#find-min-path-btn').style.display = 'none';
 }
 
-/**
- * Обработчик при отмене поиска
- */
 const onClickCancelFinding = (event) => {
-    cy.removeListener('tap', 'node', onTapOnNodeHandler);
+    cy.nodes().unlock();
     pathPlan.fromVertex = null;
     pathPlan.toVertex = null;
-    cy.nodes().unlock();
+    cy.removeListener('tap', 'node', onTapOnNodeHandler);
     cy.nodes().style("background-color", defaultNodeStyle.style["background-color"]);
     if (isMovingNodeMode) {
         document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
     } else {
         document.querySelector('#state-information').innerHTML = 'Добавление ребер';
     }
+
+    document.querySelector('#solve-dijkstra-btn').style.display = 'none';
+    document.querySelector('#cancel-finding-btn').style.display = 'none';
+    document.querySelector('#change-mode-btn').style.display = 'inline-block';
+    document.querySelector('#find-min-path-btn').style.display = 'inline-block';
+}
+
+const registerEventHandlers = () => {
+    document.querySelector('#change-mode-btn').addEventListener('click', onChangeModeHandler);
+    document.querySelector('#find-min-path-btn').addEventListener('click', onClickFindMinPath);
+    document.querySelector('#cancel-finding-btn').addEventListener('click', onClickCancelFinding);
+}
+
+const main = () => {
+    registerGraphEventHandlers();
+    createContextMenu();
+    registerEventHandlers();
 }
 
 const cy = cytoscape({
@@ -218,14 +194,5 @@ const eh = cy.edgehandles();
 const pathPlan = { fromVertex: null, toVertex: null };
 var isMovingNodeMode = true;
 const graph = new Graph();
-
-const main = () => {
-    registerEventHandlers();
-    createContextMenu();
-
-    document.querySelector('#change-mode-btn').addEventListener('click', onChangeModeHandler);
-    document.querySelector('#find-min-path-btn').addEventListener('click', onClickFindMinPath);
-    document.querySelector('#cancel-finding-btn').addEventListener('click', onClickCancelFinding);
-}
 
 document.addEventListener('DOMContentLoaded', main);
