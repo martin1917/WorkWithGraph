@@ -1,13 +1,10 @@
 import Graph from "./src/Graph.mjs";
-import DijkstraResult from "./src/DijkstraResult.mjs";
 import {selectedElementStyle} from "./graphStyles.mjs";
 import {defaultEdgeStyle} from "./graphStyles.mjs";
 import {defaultNodeStyle} from "./graphStyles.mjs";
 import {ehGhostPreviewEdgeActiveStyle} from "./edgeHandlesStyles.mjs";
 import {ehPreviewAndGhostEdgeStyle} from "./edgeHandlesStyles.mjs";
 import {ehNodeStyle} from "./edgeHandlesStyles.mjs";
-
-const graph = new Graph();
 
 /**
  * обработчик, вызываемый при создании ребра между вершинами
@@ -50,7 +47,6 @@ const onDoubleTapNode = (event) => {
  * регистрация всех обработчиков
  */
 const registerEventHandlers = () => {
-    const cy = window.cy;
     cy.on('ehcomplete', onEdgeCreated);
     cy.on('dbltap', 'node', onDoubleTapNode);
 }
@@ -60,7 +56,6 @@ const registerEventHandlers = () => {
  */
 const createContextMenu = () => {
     let removed;
-    const cy = window.cy;
     const contextMenu = cy.contextMenus({
         menuItems: [
             {
@@ -121,106 +116,116 @@ const createContextMenu = () => {
 }
 
 /**
- * Создание обработчика для изменения режима 
+ * обработчик для изменения режима 
  * (добавление ребер <-> перемещение вершин)
- */
-const changeMode = () => {
-    let isMovingNodeMode = true;
-    const eh = cy.edgehandles();
-    return (event) => {
-        if (isMovingNodeMode) {
-            document.querySelector('#change-mode-btn').innerHTML = 'Выкл. режим "Добавление ребер"';
-            document.querySelector('#state-information').innerHTML = 'Добавление ребер';
-            eh.enableDrawMode();
-        } else {
-            document.querySelector('#change-mode-btn').innerHTML = 'Вкл. режим "Добавление ребер"';
-            document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
-            eh.disableDrawMode();
-        }
-        isMovingNodeMode = !isMovingNodeMode;
-    };
+*/
+const onChangeModeHandler = (event) => {
+    if (isMovingNodeMode) {
+        document.querySelector('#change-mode-btn').innerHTML = 'Выкл. режим "Добавление ребер"';
+        document.querySelector('#state-information').innerHTML = 'Добавление ребер';
+        eh.enableDrawMode();
+    } else {
+        document.querySelector('#change-mode-btn').innerHTML = 'Вкл. режим "Добавление ребер"';
+        document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
+        eh.disableDrawMode();
+    }
+    isMovingNodeMode = !isMovingNodeMode;
 }
 
-const tapOnNode = () => {
-    let fromVertex = null;
-    let toVertex = null;
-    
-    return (event) => {        
-        if (fromVertex == null && toVertex == null) {
-            fromVertex = event.target;
-            fromVertex.style('background-color', 'lightgreen');
-            const text = `Выберите вторую вершину (${fromVertex.data('name')} -> )`;
+
+
+/**
+ * Создание обработчика при нажатии на вершину графа
+ */
+const onTapOnNodeHandler = (event) => {
+    if (pathPlan.fromVertex == null && pathPlan.toVertex == null) {
+        pathPlan.fromVertex = event.target;
+        pathPlan.fromVertex.style('background-color', 'lightgreen');
+        const text = `Выберите вторую вершину (${pathPlan.fromVertex.data('name')} -> )`;
+        document.querySelector('#state-information').innerHTML = text;
+    }
+    else if (pathPlan.fromVertex != null && pathPlan.toVertex == null) {
+        if (event.target == pathPlan.fromVertex) {
+            pathPlan.fromVertex.style('background-color', defaultNodeStyle.style["background-color"]);
+            document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
+            pathPlan.fromVertex = null;
+        } else {
+            pathPlan.toVertex = event.target;
+            pathPlan.toVertex.style('background-color', 'lightgreen');
+            const text = `Вершины выбраны (${pathPlan.fromVertex.data('name')} -> ${pathPlan.toVertex.data('name')})`;
             document.querySelector('#state-information').innerHTML = text;
         }
-        else if (fromVertex != null && toVertex == null) {
-            if (event.target == fromVertex) {
-                fromVertex.style('background-color', defaultNodeStyle.style["background-color"]);
-                document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
-                fromVertex = null;
-            } else {
-                toVertex = event.target;
-                toVertex.style('background-color', 'lightgreen');
-                const text = `Вершины выбраны (${fromVertex.data('name')} -> ${toVertex.data('name')})`;
-                document.querySelector('#state-information').innerHTML = text;
-            }
+    }
+    else if (pathPlan.fromVertex != null && pathPlan.toVertex != null) {
+        if (event.target == pathPlan.toVertex) {
+            pathPlan.toVertex.style('background-color', defaultNodeStyle.style["background-color"]);
+            const text = `Выберите вторую вершину (${pathPlan.fromVertex.data('name')} -> )`;
+            document.querySelector('#state-information').innerHTML = text;
+            pathPlan.toVertex = null;
+        }    
+        if (event.target == pathPlan.fromVertex) {
+            pathPlan.fromVertex.style('background-color', defaultNodeStyle.style["background-color"]);
+            pathPlan.fromVertex = pathPlan.toVertex;
+            pathPlan.toVertex = null;
+            const text = `Выберите вторую вершину (${pathPlan.fromVertex.data('name')} -> )`;
+            document.querySelector('#state-information').innerHTML = text;
         }
-        else if (fromVertex != null && toVertex != null) {
-            if (event.target == toVertex) {
-                toVertex.style('background-color', defaultNodeStyle.style["background-color"]);
-                const text = `Выберите вторую вершину (${fromVertex.data('name')} -> )`;
-                document.querySelector('#state-information').innerHTML = text;
-                toVertex = null;
-            }    
-            if (event.target == fromVertex) {
-                fromVertex.style('background-color', defaultNodeStyle.style["background-color"]);
-                fromVertex = toVertex;
-                toVertex = null;
-                const text = `Выберите вторую вершину (${fromVertex.data('name')} -> )`;
-                document.querySelector('#state-information').innerHTML = text;
-            }
-        }
+    }
 
-        console.log(`FROM ${fromVertex != null ? fromVertex.data('name') : 'нет'}`);
-        console.log(`TO ${toVertex != null ? toVertex.data('name') : 'нет'}`);
-        console.log('-----------------------------');
+    console.log(`FROM ${pathPlan.fromVertex != null ? pathPlan.fromVertex.data('name') : 'нет'}`);
+    console.log(`TO ${pathPlan.toVertex != null ? pathPlan.toVertex.data('name') : 'нет'}`);
+    console.log('-----------------------------');
+}
+
+/**
+ * Обработчик при выборе двух вершин для поиска
+ */
+const onClickFindMinPath = (event) => {
+    document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
+    cy.nodes().lock();
+    cy.addListener('tap', 'node', onTapOnNodeHandler);
+}
+
+/**
+ * Обработчик при отмене поиска
+ */
+const onClickCancelFinding = (event) => {
+    cy.removeListener('tap', 'node', onTapOnNodeHandler);
+    pathPlan.fromVertex = null;
+    pathPlan.toVertex = null;
+    cy.nodes().unlock();
+    cy.nodes().style("background-color", defaultNodeStyle.style["background-color"]);
+    if (isMovingNodeMode) {
+        document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
+    } else {
+        document.querySelector('#state-information').innerHTML = 'Добавление ребер';
     }
 }
 
-let tmp = null;
-const onClickFindMinPath = (event) => {
-    const cy = window.cy;
-    document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
-    cy.nodes().lock();
-    tmp = tapOnNode();
-    cy.addListener('tap', 'node', tmp);
-}
+const cy = cytoscape({
+    container: document.querySelector('.cy'),
+    layout: { name: 'breadthfirst' },
+    style: [
+        defaultNodeStyle,
+        defaultEdgeStyle,
+        selectedElementStyle,
+        ehNodeStyle,
+        ehPreviewAndGhostEdgeStyle,
+        ehGhostPreviewEdgeActiveStyle
+    ]
+});
+const eh = cy.edgehandles();
+const pathPlan = { fromVertex: null, toVertex: null };
+var isMovingNodeMode = true;
+const graph = new Graph();
 
 const main = () => {
-    const cy = window.cy = cytoscape({
-        container: document.querySelector('.cy'),
-        layout: { name: 'breadthfirst' },
-        style: [
-            defaultNodeStyle,
-            defaultEdgeStyle,
-            selectedElementStyle,
-            ehNodeStyle,
-            ehPreviewAndGhostEdgeStyle,
-            ehGhostPreviewEdgeActiveStyle
-        ]
-    });
-
     registerEventHandlers();
     createContextMenu();
 
-    document.querySelector('#change-mode-btn').addEventListener('click', changeMode());
+    document.querySelector('#change-mode-btn').addEventListener('click', onChangeModeHandler);
     document.querySelector('#find-min-path-btn').addEventListener('click', onClickFindMinPath);
-    document.querySelector('#cancel-finding-btn').addEventListener('click', (event) => {
-        if (tmp != null) {
-            cy.removeListener('tap', 'node', tmp);
-            cy.nodes().unlock();
-            cy.nodes().style("background-color", defaultNodeStyle.style["background-color"]);
-        }
-    });
+    document.querySelector('#cancel-finding-btn').addEventListener('click', onClickCancelFinding);
 }
 
 document.addEventListener('DOMContentLoaded', main);
