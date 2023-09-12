@@ -11,7 +11,7 @@ const defaultEdgeStyle = {
     style: {
         'curve-style': 'bezier',
         'target-arrow-shape': 'triangle',
-        'label': 'data(label)',
+        'label': 'data(weight)',
         'line-color': 'grey',
         'edge-text-rotation': 'autorotate'
     }

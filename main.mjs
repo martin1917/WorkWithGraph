@@ -13,19 +13,28 @@ const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
         edge.data('source') == sourceNode.data('id') && 
         edge.data('target') == targetNode.data('id'));
     
+    graph.addEdge(sourceNode.data('name'), targetNode.data('name'), res - '');
+    
     if (existingEdges.length > 1) {
-        existingEdges[0].data('label', res);
+        existingEdges[0].data('weight', res);
         addedEdge.remove();
     } else {
-        addedEdge.data('label', res);
+        addedEdge.data('weight', res);
     }
 }
 
 const onDoubleTapNode = (event) => {
-    const vertex = event.target;    
-    const name = prompt('Имя вершины', vertex.data('name'));
+    const vertex = event.target;
+    const oldName = vertex.data('name');
+    const name = prompt('Имя вершины', oldName);
     if (name == null || name.trim().length == 0) return; 
-    vertex.data('name', name);
+
+    const updateRes = graph.updateNameVertex(oldName, name);
+    if (updateRes) {
+        vertex.data('name', name);
+    } else {
+        alert('Такая вершина уже есть');
+    }
 }
 
 const registerGraphEventHandlers = () => {
@@ -34,8 +43,7 @@ const registerGraphEventHandlers = () => {
 }
 
 const createContextMenu = () => {
-    let removed;
-    const contextMenu = cy.contextMenus({
+    cy.contextMenus({
         menuItems: [
             {
                 id: 'remove',
@@ -45,23 +53,14 @@ const createContextMenu = () => {
                 hasTrailingDivider: true,
                 onClickFunction: function (event) {
                     const target = event.target || event.cyTarget;
-                    removed = target.remove();        
-                    contextMenu.showMenuItem('undo-last-remove');
-                },
-            },
 
-            {
-                id: 'undo-last-remove',
-                content: 'Отменить последнее изменение',
-                selector: 'node, edge',
-                show: false,
-                coreAsWell: true,
-                hasTrailingDivider: true,
-                onClickFunction: function (event) {
-                    if (removed) {
-                        removed.restore();
+                    if (target.isNode()) {
+                        graph.removeVertex(target.data('name'));
+                    } else if (target.isEdge()) {
+                        const from = cy.elements(`node[id="${target.data('source')}"]`);
+                        const to = cy.elements(`node[id="${target.data('target')}"]`);
+                        graph.removeEdge(from.data('name'), to.data('name'));
                     }
-                    contextMenu.hideMenuItem('undo-last-remove');
                 },
             },
             
@@ -74,14 +73,20 @@ const createContextMenu = () => {
                     const name = prompt('Имя вершины');
                     if (name == null || name.trim().length == 0) return;
                     const data = { group: 'nodes', name: name };                    
-                    const pos = event.position || event.cyPosition;                    
-                    cy.add({
-                        data: data,
-                        position: {
-                            x: pos.x,
-                            y: pos.y
-                        }
-                    });
+                    const pos = event.position || event.cyPosition;
+
+                    const addResult = graph.addVertex(name);
+                    if (addResult) {
+                        cy.add({
+                            data: data,
+                            position: {
+                                x: pos.x,
+                                y: pos.y
+                            }
+                        });
+                    } else {
+                        alert('Такая вершина уже существует');
+                    }
                 }
             }
         ]
@@ -144,16 +149,15 @@ const onClickFindMinPath = (event) => {
 
     document.querySelector('#solve-dijkstra-btn').style.display = 'inline-block';
     document.querySelector('#cancel-finding-btn').style.display = 'inline-block';
+    document.querySelector('#clear-path-btn').style.display = 'inline-block';
     document.querySelector('#change-mode-btn').style.display = 'none';
     document.querySelector('#find-min-path-btn').style.display = 'none';
 }
 
 const onClickCancelFinding = (event) => {
     cy.nodes().unlock();
-    pathPlan.fromVertex = null;
-    pathPlan.toVertex = null;
     cy.removeListener('tap', 'node', onTapOnNodeHandler);
-    cy.nodes().style("background-color", defaultNodeStyle.style["background-color"]);
+    clearPath();
     if (isMovingNodeMode) {
         document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
     } else {
@@ -162,14 +166,45 @@ const onClickCancelFinding = (event) => {
 
     document.querySelector('#solve-dijkstra-btn').style.display = 'none';
     document.querySelector('#cancel-finding-btn').style.display = 'none';
+    document.querySelector('#clear-path-btn').style.display = 'none';
     document.querySelector('#change-mode-btn').style.display = 'inline-block';
     document.querySelector('#find-min-path-btn').style.display = 'inline-block';
+}
+
+const onClickDijkstra = (event) => {
+    if (pathPlan.fromVertex != null && pathPlan.toVertex != null) {
+        const res = graph.dijkstra(pathPlan.fromVertex.data('name'), pathPlan.toVertex.data('name'));
+        console.log(res.distance);
+        console.log(res.path);
+
+        document.querySelector('#state-information').innerHTML = `Мин. расстояние = ${res.distance}`;
+
+        for (let i = 0; i < res.path.length; i++) {
+            const fromVertex = cy.elements(`node[name="${res.path[i]}"]`);
+            const toVertex = cy.elements(`node[name="${res.path[i + 1]}"]`);
+            const edge = cy.elements(`edge[source="${fromVertex.id()}"][target="${toVertex.id()}"]`);
+            edge.style('line-color', 'green');
+            fromVertex.style('background-color', 'green');
+        }
+    }
+}
+
+const clearPath = () => {
+    pathPlan.fromVertex = null;
+    pathPlan.toVertex = null;
+    cy.nodes().style("background-color", defaultNodeStyle.style["background-color"]);
+    cy.edges().style("line-color", defaultEdgeStyle.style["line-color"]);
+    document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
 }
 
 const registerEventHandlers = () => {
     document.querySelector('#change-mode-btn').addEventListener('click', onChangeModeHandler);
     document.querySelector('#find-min-path-btn').addEventListener('click', onClickFindMinPath);
     document.querySelector('#cancel-finding-btn').addEventListener('click', onClickCancelFinding);
+    document.querySelector('#solve-dijkstra-btn').addEventListener('click', onClickDijkstra);
+    document.querySelector('#clear-path-btn').addEventListener('click', clearPath);
+
+    document.querySelector('#log').addEventListener('click', (e) => console.log(graph));
 }
 
 const main = () => {
@@ -178,7 +213,7 @@ const main = () => {
     registerEventHandlers();
 }
 
-const cy = cytoscape({
+const cy = window.cy = cytoscape({
     container: document.querySelector('.cy'),
     layout: { name: 'breadthfirst' },
     style: [

@@ -7,6 +7,18 @@ export default class Graph {
         this.matrix = [];
     }
 
+    updateNameVertex(oldName, name) {
+        for (let vertex of this.vertexes) {
+            if (vertex.label == name) {
+                return false;
+            }
+        }
+
+        const vertex = this.vertexes.filter(v => v.label == oldName)[0];
+        vertex.label = name;
+        return true;
+    }
+
     /**
      * Получение индексов соседних вершин
      * @param {number} indexOfVertex индекс вершины, для которой производится поиск
@@ -107,7 +119,7 @@ export default class Graph {
         const existedVertex = this.vertexes.filter(v => v.label == name)[0];
         if (existedVertex != undefined) {
             console.log(`не удалось добавить вершину. (веришна '${name}' уже существует)`);
-            return;
+            return false;
         }
 
         // add essential cells
@@ -119,6 +131,7 @@ export default class Graph {
         const vertex = new Vertex(name);
         vertex.index = this.matrix.length - 1;
         this.vertexes.push(vertex);
+        return true;
     }
 
     /**
