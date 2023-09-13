@@ -231,6 +231,9 @@ const clearPath = () => {
     document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
 }
 
+/**
+ * Обработчик, срабатывающий при нажатии на кнопку "Создать граф"
+ */
 const onClickCreateGraph = (event) => {
     const nStr = prompt('Укажите кол-во вершин графа (1 <= N <= 10)').trim();
     if (nStr == null || nStr.length == 0) {
