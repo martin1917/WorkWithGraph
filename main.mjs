@@ -36,11 +36,16 @@ const onDoubleTapNode = (event) => {
     if (name == null || name.trim().length == 0) return; 
 
     const updateRes = graph.updateNameVertex(oldName, name);
-    if (updateRes) {
-        vertex.data('name', name);
-    } else {
+    if (!updateRes) {
         alert('Такая вершина уже есть');
+        return;
     }
+
+    vertex.data('name', name);
+    const table = document.querySelector('#table');
+    const index = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(oldName);
+    table.rows[0].cells[index].innerHTML = name;
+    table.rows[index].cells[0].innerHTML = name;
 }
 
 /**
