@@ -2,6 +2,9 @@ import Graph from "./src/Graph.mjs";
 import {selectedElementStyle, defaultEdgeStyle, defaultNodeStyle} from "./graphStyles.mjs";
 import {ehGhostPreviewEdgeActiveStyle, ehPreviewAndGhostEdgeStyle, ehNodeStyle} from "./edgeHandlesStyles.mjs";
 
+/**
+ * Обработчик, срабатывающий при создании ребра
+ */
 const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
     const res = prompt('Вес ребра');
     if (res == null || res.trim().length == 0) {
@@ -23,6 +26,9 @@ const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
     }
 }
 
+/**
+ * Обработчик, срабатывающий при двойном нажатии на вершину графа
+ */
 const onDoubleTapNode = (event) => {
     const vertex = event.target;
     const oldName = vertex.data('name');
@@ -37,11 +43,17 @@ const onDoubleTapNode = (event) => {
     }
 }
 
+/**
+ * Регистарция всех событий для графа
+ */
 const registerGraphEventHandlers = () => {
     cy.on('ehcomplete', onEdgeCreated);
     cy.on('dbltap', 'node', onDoubleTapNode);
 }
 
+/**
+ * Создание контекстного меню
+ */
 const createContextMenu = () => {
     cy.contextMenus({
         menuItems: [
@@ -61,6 +73,7 @@ const createContextMenu = () => {
                         const to = cy.elements(`node[id="${target.data('target')}"]`);
                         graph.removeEdge(from.data('name'), to.data('name'));
                     }
+                    target.remove();
                 },
             },
             
@@ -93,20 +106,27 @@ const createContextMenu = () => {
     });
 }
 
-const onChangeModeHandler = (event) => {
+/**
+ * Обработчик, срабатывающий при изменении режима
+ * (добавление ребер <-> перемещение вершин)
+ */
+const onChangeMode = (event) => {
     if (isMovingNodeMode) {
         document.querySelector('#change-mode-btn').innerHTML = 'Выкл. режим "Добавление ребер"';
         document.querySelector('#state-information').innerHTML = 'Добавление ребер';
-        eh.enableDrawMode();
+        edgeHandles.enableDrawMode();
     } else {
         document.querySelector('#change-mode-btn').innerHTML = 'Вкл. режим "Добавление ребер"';
         document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
-        eh.disableDrawMode();
+        edgeHandles.disableDrawMode();
     }
     isMovingNodeMode = !isMovingNodeMode;
 }
 
-const onTapOnNodeHandler = (event) => {
+/**
+ * Обработчик, срабатывающий при нажатии на вершину графа
+ */
+const onTapOnNode = (event) => {
     if (pathPlan.fromVertex == null && pathPlan.toVertex == null) {
         pathPlan.fromVertex = event.target;
         pathPlan.fromVertex.style('background-color', 'lightgreen');
@@ -142,9 +162,12 @@ const onTapOnNodeHandler = (event) => {
     }
 }
 
+/**
+ * Обработчик, срабатывающий при нажатии на кнопку "поиск мин. пути"
+ */
 const onClickFindMinPath = (event) => {
     cy.nodes().lock();
-    cy.addListener('tap', 'node', onTapOnNodeHandler);
+    cy.addListener('tap', 'node', onTapOnNode);
     document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';    
 
     document.querySelector('#solve-dijkstra-btn').style.display = 'inline-block';
@@ -154,9 +177,12 @@ const onClickFindMinPath = (event) => {
     document.querySelector('#find-min-path-btn').style.display = 'none';
 }
 
+/**
+ * Обработчик, срабатывающий при нажатии на кнопку "отменить поиск"
+ */
 const onClickCancelFinding = (event) => {
     cy.nodes().unlock();
-    cy.removeListener('tap', 'node', onTapOnNodeHandler);
+    cy.removeListener('tap', 'node', onTapOnNode);
     clearPath();
     if (isMovingNodeMode) {
         document.querySelector('#state-information').innerHTML = 'Перемещение вершин';
@@ -171,13 +197,18 @@ const onClickCancelFinding = (event) => {
     document.querySelector('#find-min-path-btn').style.display = 'inline-block';
 }
 
+/**
+ * Обработчик, срабатывающий при нажатии на кнопку "найти по алгоритму Дейкстры"
+ */
 const onClickDijkstra = (event) => {
     if (pathPlan.fromVertex != null && pathPlan.toVertex != null) {
         const res = graph.dijkstra(pathPlan.fromVertex.data('name'), pathPlan.toVertex.data('name'));
-        console.log(res.distance);
-        console.log(res.path);
+        if (res == null) {
+            document.querySelector('#state-information').innerHTML = `Такого пути (${pathPlan.fromVertex.data('name')} -> ${pathPlan.toVertex.data('name')}) не существует`;
+            return;
+        }
 
-        document.querySelector('#state-information').innerHTML = `Мин. расстояние = ${res.distance}`;
+        document.querySelector('#state-information').innerHTML = `Мин. расстояние (${pathPlan.fromVertex.data('name')} -> ${pathPlan.toVertex.data('name')}) = ${res.distance}`;
 
         for (let i = 0; i < res.path.length; i++) {
             const fromVertex = cy.elements(`node[name="${res.path[i]}"]`);
@@ -189,6 +220,9 @@ const onClickDijkstra = (event) => {
     }
 }
 
+/**
+ * убрать с графа отмеченный путь
+ */
 const clearPath = () => {
     pathPlan.fromVertex = null;
     pathPlan.toVertex = null;
@@ -197,20 +231,22 @@ const clearPath = () => {
     document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
 }
 
+/**
+ * Регистрация обработчиков нажатия кнопок
+ */
 const registerEventHandlers = () => {
-    document.querySelector('#change-mode-btn').addEventListener('click', onChangeModeHandler);
+    document.querySelector('#change-mode-btn').addEventListener('click', onChangeMode);
     document.querySelector('#find-min-path-btn').addEventListener('click', onClickFindMinPath);
     document.querySelector('#cancel-finding-btn').addEventListener('click', onClickCancelFinding);
     document.querySelector('#solve-dijkstra-btn').addEventListener('click', onClickDijkstra);
     document.querySelector('#clear-path-btn').addEventListener('click', clearPath);
-
     document.querySelector('#log').addEventListener('click', (e) => console.log(graph));
 }
 
 const main = () => {
-    registerGraphEventHandlers();
     createContextMenu();
     registerEventHandlers();
+    registerGraphEventHandlers();
 }
 
 const cy = window.cy = cytoscape({
@@ -225,7 +261,7 @@ const cy = window.cy = cytoscape({
         ehGhostPreviewEdgeActiveStyle
     ]
 });
-const eh = cy.edgehandles();
+const edgeHandles = cy.edgehandles();
 const pathPlan = { fromVertex: null, toVertex: null };
 var isMovingNodeMode = true;
 const graph = new Graph();

@@ -27,7 +27,7 @@ export default class Graph {
     getNeighborIndexes(indexOfVertex) {
         const neighbors = [];
         for (let j = 0; j < this.matrix.length; j++) {
-            if (this.matrix[indexOfVertex][j] > 0) {
+            if (this.matrix[indexOfVertex][j] != null && this.matrix[indexOfVertex][j] > 0) {
                 neighbors.push(j);
             }
         }
@@ -93,10 +93,9 @@ export default class Graph {
                 }
             }
             cur = nextVertex;
-            
-            if (cur != -1) {
-                visitted.push(cur);
-            }
+
+            if (cur == -1) return null;
+            visitted.push(cur);
         }
         
         // восстановление кратчайшего пути
