@@ -1,13 +1,41 @@
-.cy {
-	margin-top: 5px;
-	width: 800px;
-	height: 700px;
-	border: 1px black dotted;
-	z-index: 999;
-}
-
 #state-information {
-	color: red;
+	color: hotpink;
 	font-size: 20px;
 	font-weight: bold;
+	border: 1px black dotted;	
+	padding: 20px;
+}
+
+.main {
+	border: 1px black dotted;
+	height: 700px;
+	margin-bottom: 10px;
+	display: flex;
+}	
+
+.visual {
+	margin: 10px;
+	width: 700px;
+	padding-right: 10px;
+	border-right: 1px black solid;
+}
+
+.cy {
+	border: 1px black dotted;
+	z-index: 999;
+	background-color: linen;
+	height: 620px;
+}
+
+.matrix {
+	margin: 10px;
+}
+
+table, th, td {
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+th, td {
+	font-size: 20px;
 }

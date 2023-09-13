@@ -17,13 +17,27 @@
 <body>
     <p id="state-information">Перемещение вершин</p>
     <div class="main">
-        <button id="change-mode-btn">Вкл. режим "Добавление ребер"</button>
-        <button id="find-min-path-btn">Найти минимальный путь</button>
-        <button id="solve-dijkstra-btn" style="display: none;">Рассчитать по алгоритму Дейкстры</button>
-        <button id="cancel-finding-btn" style="display: none;">Отменить поиск</button>
-        <button id="clear-path-btn" style="display: none;">Очистить путь</button>
-        <div class="cy"></div>
-        <button id="log">log</button>
+        <div class="visual">
+            <div class="visual-header-text" style="margin-bottom: 5px; font-weight: bold;">Отображение графа</div>
+            <div class="visual-buttons" style="margin-bottom: 10px;">
+                <button id="change-mode-btn">Вкл. режим "Добавление ребер"</button>
+                <button id="find-min-path-btn">Найти минимальный путь</button>
+                <button id="solve-dijkstra-btn" style="display: none; color: chocolate; font-weight: bold;">Рассчитать по алгоритму Дейкстры</button>
+                <button id="cancel-finding-btn" style="display: none;">Отменить поиск</button>
+                <button id="clear-path-btn" style="display: none;">Очистить путь</button>
+            </div>
+            <div class="cy"></div>
+        </div>
+        <div class="matrix">
+            <div class="matrix-header-text" style="margin-bottom: 5px; font-weight: bold;">Матрица смежности</div>
+            <div class="matrix-buttons" style="margin-bottom: 10px;">
+                <button id="draw-graph-btn">Нарисовать граф по матрице</button>
+                <button id="create-graph-btn">Создать граф с 'N' вершинами</button>
+                <button id="add-vertex-btn">Добавить вершину</button>
+            </div>
+            <table id="table"></table>
+        </div>
     </div>
+    <button id="log">log</button>
 </body>
 </html>

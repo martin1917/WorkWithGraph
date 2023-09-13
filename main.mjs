@@ -231,6 +231,114 @@ const clearPath = () => {
     document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';
 }
 
+const onClickCreateGraph = (event) => {
+    const nStr = prompt('Укажите кол-во вершин графа (1 <= N <= 10)').trim();
+    if (nStr == null || nStr.length == 0) {
+        alert('ПУСТОТА!!!');
+        return;
+    }
+
+    const n = nStr - '';
+    if (isNaN(n)) {
+        alert('Вы ввели НЕ число');
+        return;
+    }
+
+    if (n  < 1|| n > 10) {
+        alert(`N = ${n} (1 <= N <= 10) !!!`);
+        return;
+    }
+    
+    graph = new Graph();
+    for (let i = 1; i <= n; i++) {
+        graph.addVertex(`${i}`);
+    }
+
+    const table = document.querySelector('#table');
+    table.innerHTML = '';
+
+    const firstRow = document.createElement('tr');
+    firstRow.appendChild(document.createElement('th'));    
+    for (let i = 1; i <= n; i++) {
+        const head = document.createElement('th');
+        head.innerHTML = `${i}`;
+        firstRow.appendChild(head);
+    }
+
+    table.appendChild(firstRow);
+
+    for (let i = 1; i <= n; i++) {
+        const row = document.createElement('tr');
+        const firstCell = document.createElement('th');
+        firstCell.innerHTML = `${i}`;
+        row.appendChild(firstCell);
+        for (let j = 1; j <= n; j++) {
+            const cell = document.createElement('td');
+            const input = document.createElement('input');
+            input.style.width = '40px';
+            input.style.margin = '3px';
+
+            if (i == j) {
+                input.setAttribute('disabled', true);
+            }
+
+            cell.appendChild(input);
+            row.appendChild(cell);
+        }
+        table.appendChild(row);
+    }
+}
+
+/**
+ * Обработчик, срабатывающий при нажатии на кнопку "Нарисовать граф"
+ */
+const onClickDrawGraph = (event) => {
+    const table = document.querySelector('#table');
+
+    cy.nodes().remove();
+    cy.edges().remove();
+
+    const step = 2 * Math.PI / (table.rows.length - 1);
+    const r = 200;
+    let x = 0;
+    let y = 0;
+
+    for (let i = 1; i < table.rows.length; i++) {
+        cy.add({
+            group: 'nodes',
+            data: {
+                name: table.rows[0].cells[i].innerHTML
+            },
+            position: {
+                x: x + r * Math.cos(i * step),
+                y: y + r * Math.sin(i * step),
+            }
+        });
+    }
+
+    for (let i = 1; i < table.rows.length; i++) {
+        for (let j = 1; j < table.rows.length; j++) {
+            const input = table.rows[i].cells[j].firstChild;
+            const weight = input.value.trim() - '' || null;
+            if (weight != null) {
+                const from = table.rows[i].cells[0].innerHTML;
+                const to = table.rows[0].cells[j].innerHTML;
+    
+                graph.addEdge(from, to, weight);
+    
+                cy.add({
+                    group: 'edges',
+                    data: {
+                        source: cy.elements(`node[name="${from}"]`).id(),
+                        target: cy.elements(`node[name="${to}"]`).id(),
+                        weight: weight
+                    },
+                });
+            }
+        }    
+    }
+}
+
 /**
  * Регистрация обработчиков нажатия кнопок
  */
@@ -241,17 +349,15 @@ const registerEventHandlers = () => {
     document.querySelector('#solve-dijkstra-btn').addEventListener('click', onClickDijkstra);
     document.querySelector('#clear-path-btn').addEventListener('click', clearPath);
     document.querySelector('#log').addEventListener('click', (e) => console.log(graph));
+
+    document.querySelector('#create-graph-btn').addEventListener('click', onClickCreateGraph);
+    document.querySelector('#draw-graph-btn').addEventListener('click', onClickDrawGraph);
 }
 
-const main = () => {
-    createContextMenu();
-    registerEventHandlers();
-    registerGraphEventHandlers();
-}
-
-const cy = window.cy = cytoscape({
+var cy = window.cy = cytoscape({
     container: document.querySelector('.cy'),
     layout: { name: 'breadthfirst' },
+    zoomingEnabled: false,
     style: [
         defaultNodeStyle,
         defaultEdgeStyle,
@@ -264,6 +370,10 @@ const cy = window.cy = cytoscape({
 const edgeHandles = cy.edgehandles();
 const pathPlan = { fromVertex: null, toVertex: null };
 var isMovingNodeMode = true;
-const graph = new Graph();
+var graph = new Graph();
 
-document.addEventListener('DOMContentLoaded', main);
+document.addEventListener('DOMContentLoaded', (e) => {
+    createContextMenu();
+    registerEventHandlers();
+    registerGraphEventHandlers();
+});
