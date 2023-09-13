@@ -6,8 +6,8 @@ import {ehGhostPreviewEdgeActiveStyle, ehPreviewAndGhostEdgeStyle, ehNodeStyle} 
  * Обработчик, срабатывающий при создании ребра
  */
 const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
-    const res = prompt('Вес ребра');
-    if (res == null || res.trim().length == 0) {
+    const weight = prompt('Вес ребра');
+    if (weight == null || weight.trim().length == 0) {
         addedEdge.remove()
         return;
     }
@@ -16,14 +16,22 @@ const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
         edge.data('source') == sourceNode.data('id') && 
         edge.data('target') == targetNode.data('id'));
     
-    graph.addEdge(sourceNode.data('name'), targetNode.data('name'), res - '');
+    graph.addEdge(sourceNode.data('name'), targetNode.data('name'), weight - '');
     
     if (existingEdges.length > 1) {
-        existingEdges[0].data('weight', res);
+        existingEdges[0].data('weight', weight);
         addedEdge.remove();
     } else {
-        addedEdge.data('weight', res);
+        addedEdge.data('weight', weight);
     }
+
+    const table = document.querySelector('#table');
+    const from = sourceNode.data('name');
+    const to = targetNode.data('name');
+    
+    const row = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(from);
+    const col = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(to);
+    table.rows[row].cells[col].firstChild.value = weight;
 }
 
 /**
