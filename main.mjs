@@ -477,7 +477,8 @@ const registerEventHandlers = () => {
     document.querySelector('#draw-graph-btn').addEventListener('click', onClickDrawGraph);
 }
 
-var cy = window.cy = cytoscape({
+// полотно для отрисовки графов
+const cy = window.cy = cytoscape({
     container: document.querySelector('.cy'),
     layout: { name: 'breadthfirst' },
     zoomingEnabled: false,
@@ -490,9 +491,17 @@ var cy = window.cy = cytoscape({
         ehGhostPreviewEdgeActiveStyle
     ]
 });
+
+// управление ребрами
 const edgeHandles = cy.edgehandles();
-const pathPlan = { fromVertex: null, toVertex: null };
+
+// состояние (перемещение вершин <-> добавление ребер)
 var isMovingNodeMode = true;
+
+// начальная и конечная вершины для поиска пути
+const pathPlan = { fromVertex: null, toVertex: null };
+
+// граф с которым идет работа
 var graph = new Graph();
 
 document.addEventListener('DOMContentLoaded', (e) => {
