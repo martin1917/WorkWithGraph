@@ -1,5 +1,6 @@
 import Vertex from './Vertex.mjs'
 import DijkstraResult from './DijkstraResult.mjs'
+import FloidResult from './FloidResult.mjs'
 
 export default class Graph {
     constructor() {
@@ -66,12 +67,12 @@ export default class Graph {
         for (let i = 0; i < dist.length; i++) {
             for (let j = 0; j < dist.length; j++) {
                 let path = this._getPath(next, i, j);
-                allPath.push({
-                    from: this.vertexes[i].label,
-                    to: this.vertexes[j].label,
-                    path: path.map(i => this.vertexes[i].label),
-                    len: dist[i][j] == Number.MAX_VALUE ? null : dist[i][j]
-                });
+                allPath.push(new FloidResult(
+                    this.vertexes[i].label,
+                    this.vertexes[j].label,
+                    path.map(i => this.vertexes[i].label),
+                    dist[i][j] == Number.MAX_VALUE ? null : dist[i][j]
+                ));
             }
         } 
 
