@@ -34,6 +34,34 @@ export default class Graph {
         return neighbors;
     }
 
+    floid() {
+        // инициализация 
+        let dist = [];
+        for (let i = 0; i < this.matrix.length; i++) {
+            let row = [];
+            for (let j = 0; j < this.matrix.length; j++) {
+                if (i == j) {
+                    row.push(0);
+                } else {
+                    const weight = this.matrix[i][j] || Number.MAX_VALUE;
+                    row.push(weight);
+                }
+            }
+            dist.push(row);
+        }
+
+        // поиск путей между всему парами вершин
+        for (let k = 0; k < this.matrix.length; k++) {
+            for (let i = 0; i < this.matrix.length; i++) {
+                for (let j = 0; j < this.matrix.length; j++) {
+                    dist[i][j] = Math.min(dist[i][j], dist[i][k] + dist[k][j]);
+                }
+            }   
+        }
+
+        return dist.map(row => row.map(x => x == Number.MAX_VALUE ? null : x));
+    }
+
     /**
      * Поиск кратчайшего пути по алгоритму Дейкстры
      * @param {string} from название начальной вершины
@@ -121,7 +149,7 @@ export default class Graph {
             return false;
         }
 
-        // add essential cells
+        // добавление недостающий ячеек
         for (let i = 0; i < this.matrix.length; i++) {
             this.matrix[i].push(null);
         }
@@ -205,33 +233,33 @@ export default class Graph {
             return;
         }
 
-        // remove vertex
+        // удаление вершины
         this.vertexes.splice(this.vertexes.indexOf(removingVertex), 1);
 
-        // move columns to left
+        // перемещение колонок влево
         for (let i = 0; i < this.matrix.length; i++) {
             for (let j = removingVertex.index; j < this.matrix.length - 1; j++) {
                 this.matrix[i][j] = this.matrix[i][j + 1];
             }
         }
 
-        // move rows to up
+        // перемещение строк вверх
         for (let i = removingVertex.index; i < this.matrix.length - 1; i++) {
             for (let j = 0; j < this.matrix.length; j++) {
                 this.matrix[i][j] = this.matrix[i + 1][j];
             }
         }
 
-        // set null value to diagonal cell
+        // зануляем диагональный элемент
         this.matrix[removingVertex.index][removingVertex.index] = null;        
 
-        // remove useless cells
+        // удаление ненужных ячеек
         for (let i = 0; i < this.matrix.length; i++) {
             this.matrix[i].pop();
         }
         this.matrix.pop();
-
-        // update indexes for remained vertexes
+        
+        // обновление индексов
         for (let i = 0; i < this.vertexes.length; i++) {
             if (this.vertexes[i].index > removingVertex.index) {
                 this.vertexes[i].index -= 1;
@@ -240,28 +268,16 @@ export default class Graph {
     }
 }
 
-// import Graph from "./src/Graph.mjs";
+// graph.addVertex('a');
+// graph.addVertex('b');
+// graph.addVertex('c');
+// graph.addVertex('d');
+// graph.addVertex('e');
 
-// const main = () => {
-//     const graph = new Graph();
-//     graph.addVertex('a');
-//     graph.addVertex('b');
-//     graph.addVertex('c');
-//     graph.addVertex('d');
-//     graph.addVertex('e');
-
-//     graph.addEdge('a', 'b', 10);
-//     graph.addEdge('a', 'e', 100);
-//     graph.addEdge('a', 'd', 30);
-//     graph.addEdge('b', 'c', 50);
-//     graph.addEdge('c', 'e', 10);
-//     graph.addEdge('d', 'c', 20);
-//     graph.addEdge('d', 'e', 60);
-
-//     console.log(graph.matrix);
-
-//     const res = graph.dijkstra('a', 'e');
-//     console.log(res);
-// };
-
-// main();
+// graph.addEdge('a', 'b', 10);
+// graph.addEdge('a', 'e', 100);
+// graph.addEdge('a', 'd', 30);
+// graph.addEdge('b', 'c', 50);
+// graph.addEdge('c', 'e', 10);
+// graph.addEdge('d', 'c', 20);
+// graph.addEdge('d', 'e', 60);
