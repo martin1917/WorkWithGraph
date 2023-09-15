@@ -292,6 +292,7 @@ const onClickFindMinPath = (event) => {
     document.querySelector('#clear-path-btn').style.display = 'inline-block';
     document.querySelector('#change-mode-btn').style.display = 'none';
     document.querySelector('#find-min-path-btn').style.display = 'none';
+    document.querySelector('#find-path-floid-btn').style.display = 'none';
 }
 
 /**
@@ -312,6 +313,7 @@ const onClickCancelFinding = (event) => {
     document.querySelector('#clear-path-btn').style.display = 'none';
     document.querySelector('#change-mode-btn').style.display = 'inline-block';
     document.querySelector('#find-min-path-btn').style.display = 'inline-block';
+    document.querySelector('#find-path-floid-btn').style.display = 'inline-block';
 }
 
 /**
