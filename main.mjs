@@ -81,10 +81,50 @@ const createContextMenu = () => {
 
                     if (target.isNode()) {
                         graph.removeVertex(target.data('name'));
-                    } else if (target.isEdge()) {
+                        
+                        const table = document.querySelector('#table');
+                        table.innerHTML = '';
+                    
+                        const firstRow = document.createElement('tr');
+                        firstRow.appendChild(document.createElement('th'));    
+                        for (let i = 0; i < graph.matrix.length; i++) {
+                            const head = document.createElement('th');
+                            head.innerHTML = `${graph.vertexes[i].label}`;
+                            firstRow.appendChild(head);
+                        }
+                    
+                        table.appendChild(firstRow);
+
+                        for (let i = 0; i < graph.matrix.length; i++) {
+                            const row = document.createElement('tr');
+                            const firstCell = document.createElement('th');
+                            firstCell.innerHTML = `${graph.vertexes[i].label}`;
+                            row.appendChild(firstCell);
+                            for (let j = 0; j < graph.matrix.length; j++) {
+                                const cell = document.createElement('td');
+                                const input = document.createElement('input');
+                                input.style.width = '40px';
+                                input.style.margin = '3px';
+                                input.value = graph.getWeight(graph.vertexes[i].label, graph.vertexes[j].label) || '';
+                    
+                                if (i == j) {
+                                    input.setAttribute('disabled', true);
+                                }
+                    
+                                cell.appendChild(input);
+                                row.appendChild(cell);
+                            }
+                            table.appendChild(row);
+                        }
+                    } 
+                    else if (target.isEdge()) {
                         const from = cy.elements(`node[id="${target.data('source')}"]`);
                         const to = cy.elements(`node[id="${target.data('target')}"]`);
                         graph.removeEdge(from.data('name'), to.data('name'));
+
+                        const row = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(from.data('name'));
+                        const col = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(to.data('name'));
+                        table.rows[row].cells[col].firstChild.value = '';
                     }
                     target.remove();
                 },
@@ -110,6 +150,67 @@ const createContextMenu = () => {
                                 y: pos.y
                             }
                         });
+                        
+                        const table = document.querySelector('#table');
+
+                        if (table.rows.length == 0) {
+                            const firstRow = document.createElement("tr");
+                            firstRow.appendChild(document.createElement("td"));
+                            const headCell = document.createElement("th");
+                            headCell.innerHTML = name;
+                            firstRow.appendChild(headCell);
+                            table.appendChild(firstRow);                            
+                            const row = document.createElement("tr");
+                            const headRow = document.createElement("th");
+                            headRow.innerHTML = name;                            
+                            row.appendChild(headRow);
+                            const cell = document.createElement("td");
+                            const input = document.createElement('input');
+                            input.style.width = '40px';
+                            input.style.margin = '3px';
+                            input.setAttribute('disabled', true);
+                            cell.appendChild(input);
+                            row.appendChild(cell);
+                            table.appendChild(row);
+                            return;
+                        }
+
+                        const headCell = document.createElement("th");
+                        headCell.innerHTML = name;
+                        table.rows[0].appendChild(headCell);
+
+                        for (let i = 1; i < table.rows.length; i++) {
+                            const cell = document.createElement("td");
+                            const input = document.createElement('input');
+                            input.style.width = '40px';
+                            input.style.margin = '3px';
+                            cell.appendChild(input);
+                            table.rows[i].appendChild(cell);
+                        }
+
+                        const row = document.createElement("tr");
+                        const headRow = document.createElement("th");
+                        headRow.innerHTML = name;
+                        row.appendChild(headRow);
+
+                        for (let i = 1; i < table.rows.length; i++) {
+                            const cell = document.createElement("td");
+                            const input = document.createElement('input');
+                            input.style.width = '40px';
+                            input.style.margin = '3px';
+                            cell.appendChild(input);
+                            row.appendChild(cell);
+                        }
+
+                        const lastCell = document.createElement("td");
+                        const input = document.createElement('input');
+                        input.style.width = '40px';
+                        input.style.margin = '3px';
+                        input.setAttribute('disabled', true);
+                        lastCell.appendChild(input);
+                        row.appendChild(lastCell);
+                        table.appendChild(row);
+
                     } else {
                         alert('Такая вершина уже существует');
                     }

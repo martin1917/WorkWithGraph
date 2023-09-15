@@ -209,7 +209,7 @@ export default class Graph {
         this.vertexes.splice(this.vertexes.indexOf(removingVertex), 1);
 
         // move columns to left
-        for (let i = 0; i < removingVertex.index; i++) {
+        for (let i = 0; i < this.matrix.length; i++) {
             for (let j = removingVertex.index; j < this.matrix.length - 1; j++) {
                 this.matrix[i][j] = this.matrix[i][j + 1];
             }
@@ -217,7 +217,7 @@ export default class Graph {
 
         // move rows to up
         for (let i = removingVertex.index; i < this.matrix.length - 1; i++) {
-            for (let j = 0; j < removingVertex.index; j++) {
+            for (let j = 0; j < this.matrix.length; j++) {
                 this.matrix[i][j] = this.matrix[i + 1][j];
             }
         }
