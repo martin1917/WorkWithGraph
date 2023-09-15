@@ -24,7 +24,7 @@ export default class Graph {
      * @param {number} indexOfVertex индекс вершины, для которой производится поиск
      * @returns {number[]} список соседних вершин
      */
-    getNeighborIndexes(indexOfVertex) {
+    _getNeighborIndexes(indexOfVertex) {
         const neighbors = [];
         for (let j = 0; j < this.matrix.length; j++) {
             if (this.matrix[indexOfVertex][j] != null && this.matrix[indexOfVertex][j] > 0) {
@@ -35,31 +35,61 @@ export default class Graph {
     }
 
     floid() {
-        // инициализация 
-        let dist = [];
-        for (let i = 0; i < this.matrix.length; i++) {
-            let row = [];
-            for (let j = 0; j < this.matrix.length; j++) {
-                if (i == j) {
-                    row.push(0);
-                } else {
-                    const weight = this.matrix[i][j] || Number.MAX_VALUE;
-                    row.push(weight);
+        // инициализация
+        let size =  this.matrix.length
+        let dist = new Array(size).fill(0).map(_ => new Array(size).fill(Number.MAX_VALUE));
+        let next = new Array(size).fill(0).map(_ => new Array(size).fill(null));
+        for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+                if (this.matrix[i][j] != null) {
+                    dist[i][j] = this.matrix[i][j];
+                    next[i][j] = j;
                 }
             }
-            dist.push(row);
+            dist[i][i] = 0;
+            next[i][i] = i;
         }
 
         // поиск путей между всему парами вершин
         for (let k = 0; k < this.matrix.length; k++) {
             for (let i = 0; i < this.matrix.length; i++) {
                 for (let j = 0; j < this.matrix.length; j++) {
-                    dist[i][j] = Math.min(dist[i][j], dist[i][k] + dist[k][j]);
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        next[i][j] = next[i][k];
+                    }
                 }
             }   
         }
 
-        return dist.map(row => row.map(x => x == Number.MAX_VALUE ? null : x));
+        let allPath = [];
+        for (let i = 0; i < dist.length; i++) {
+            for (let j = 0; j < dist.length; j++) {
+                let path = this._getPath(next, i, j);
+                allPath.push({
+                    from: this.vertexes[i].label,
+                    to: this.vertexes[j].label,
+                    path: path.map(i => this.vertexes[i].label),
+                    len: dist[i][j] == Number.MAX_VALUE ? null : dist[i][j]
+                });
+            }
+        } 
+
+        return allPath;
+    }
+
+    _getPath(next, from, to) {
+        if (next[from][to] == null || from == to) {
+            return [];
+        }
+
+        let path = [from];
+        while (from != to) {
+            from = next[from][to];
+            path.push(from);
+        }
+
+        return path;
     }
 
     /**
@@ -100,7 +130,7 @@ export default class Graph {
         let cur = fromVertex.index;
         while (cur != toVertex.index) {
             // вычисление мин. путей до соседей
-            const neighbors = this.getNeighborIndexes(cur);
+            const neighbors = this._getNeighborIndexes(cur);
             for (let neighbor of neighbors) {
                 if (visitted.indexOf(neighbor) == -1) {
                     const newWeight = distances[cur] + this.matrix[cur][neighbor];
