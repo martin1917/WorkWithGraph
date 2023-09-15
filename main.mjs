@@ -25,12 +25,10 @@ const onEdgeCreated = (event, sourceNode, targetNode, addedEdge) => {
         addedEdge.data('weight', weight);
     }
 
-    const table = document.querySelector('#table');
-    const from = sourceNode.data('name');
-    const to = targetNode.data('name');
-    
-    const row = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(from);
-    const col = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(to);
+    // обновление HTML таблицы
+    const table = document.querySelector('#table');    
+    const row = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(sourceNode.data('name'));
+    const col = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(targetNode.data('name'));
     table.rows[row].cells[col].firstChild.value = weight;
 }
 
@@ -50,6 +48,8 @@ const onDoubleTapNode = (event) => {
     }
 
     vertex.data('name', name);
+
+    // обновление HTML таблицы
     const table = document.querySelector('#table');
     const index = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(oldName);
     table.rows[0].cells[index].innerHTML = name;
@@ -82,6 +82,7 @@ const createContextMenu = () => {
                     if (target.isNode()) {
                         graph.removeVertex(target.data('name'));
                         
+                        // обновление HTML таблицы
                         const table = document.querySelector('#table');
                         table.innerHTML = '';
                     
@@ -122,6 +123,7 @@ const createContextMenu = () => {
                         const to = cy.elements(`node[id="${target.data('target')}"]`);
                         graph.removeEdge(from.data('name'), to.data('name'));
 
+                        // обновление HTML таблицы
                         const row = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(from.data('name'));
                         const col = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(to.data('name'));
                         table.rows[row].cells[col].firstChild.value = '';
@@ -151,6 +153,7 @@ const createContextMenu = () => {
                             }
                         });
                         
+                        // обновление HTML таблицы
                         const table = document.querySelector('#table');
 
                         if (table.rows.length == 0) {
@@ -371,6 +374,7 @@ const onClickCreateGraph = (event) => {
         graph.addVertex(`${i}`);
     }
 
+    // обновление HTML таблицы
     const table = document.querySelector('#table');
     table.innerHTML = '';
 
