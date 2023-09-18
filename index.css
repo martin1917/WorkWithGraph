@@ -36,6 +36,10 @@ table, th, td {
 	border-collapse: collapse;
 }
 
+table {
+	margin-bottom: 10px;
+}
+
 th, td {
 	font-size: 20px;
 }

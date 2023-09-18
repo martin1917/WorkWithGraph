@@ -293,6 +293,7 @@ const onClickFindMinPath = (event) => {
     document.querySelector('#change-mode-btn').style.display = 'none';
     document.querySelector('#find-min-path-btn').style.display = 'none';
     document.querySelector('#find-path-floid-btn').style.display = 'none';
+    document.querySelector('#compare').style.display = 'none';
 }
 
 /**
@@ -337,6 +338,100 @@ const onClickDijkstra = (event) => {
             fromVertex.style('background-color', 'green');
         }
     }
+}
+
+/**
+ * Обработчик, срабатывающий при нажатии на кнопку "найти по алгоритму Флойда"
+ */
+const onClickFloid = (event) => {
+    document.querySelector('#time_button').style.display = 'inline-block';
+    document.querySelector('#time_field').innerHTML = '';
+    let start = performance.now();
+    const resFloid = graph.floid();
+    const timeFloid = performance.now() - start;
+    start = performance.now();
+    const resDijkstra = graph.dijkstraAll();
+    const timeDijkstra = performance.now() - start;
+    console.log(resFloid);
+    console.log(resDijkstra);
+    console.log(timeFloid);
+    console.log(timeDijkstra);
+    const compare = document.querySelector('#compare');
+    compare.style.display = 'inline-block'
+    // обновление HTML таблицы
+    const table1 = document.querySelector('#table_compare1');
+    table1.innerHTML = '';
+
+    const firstRow = document.createElement('tr');
+    firstRow.appendChild(document.createElement('th'));    
+    for (let i = 0; i < graph.vertexes.length; i++) {
+        const head = document.createElement('th');
+        head.innerHTML = graph.vertexes[i].label;
+        firstRow.appendChild(head);
+    }
+
+    table1.appendChild(firstRow);
+
+    for (let i = 0; i < graph.vertexes.length; i++) {
+        const row = document.createElement('tr');
+        const firstCell = document.createElement('th');
+        firstCell.innerHTML = graph.vertexes[i].label;
+        row.appendChild(firstCell);
+        for (let j = 0; j < graph.vertexes.length; j++) {
+            const cell = document.createElement('td');
+            const div = document.createElement('label');
+            div.style.width = '40px';
+            div.style.margin = '3px';
+            if(resFloid[i * graph.vertexes.length + j].distance != null) {
+                div.innerHTML = resFloid[i * graph.vertexes.length + j].distance
+                div.title = resFloid[i * graph.vertexes.length + j].path.join('->')
+            } else {
+                div.title = 'Нет пути'
+            }
+            cell.appendChild(div);
+            row.appendChild(cell);
+        }
+        table1.appendChild(row);
+    }
+
+    const table2 = document.querySelector('#table_compare2');
+    table2.innerHTML = '';
+    const firstRow1 = document.createElement('tr');
+    firstRow1.appendChild(document.createElement('th'));    
+    for (let i = 0; i < graph.vertexes.length; i++) {
+        const head = document.createElement('th');
+        head.innerHTML = graph.vertexes[i].label;
+        firstRow1.appendChild(head);
+    }
+
+    table2.appendChild(firstRow1);
+    for (let i = 0; i < graph.vertexes.length; i++) {
+        const row = document.createElement('tr');
+        const firstCell = document.createElement('th');
+        firstCell.innerHTML = graph.vertexes[i].label;
+        row.appendChild(firstCell);
+        for (let j = 0; j < graph.vertexes.length; j++) {
+            const cell = document.createElement('td');
+            const div = document.createElement('label');
+            div.style.width = '40px';
+            div.style.margin = '3px';
+            if(resDijkstra[i * graph.vertexes.length + j] != null) {
+                div.innerHTML =  resDijkstra[i * graph.vertexes.length + j].distance
+                div.title = resDijkstra[i * graph.vertexes.length + j].path.join('->')
+            } else {
+                div.title = 'Нет пути'
+            }
+            
+
+            cell.appendChild(div);
+            row.appendChild(cell);
+        }
+        table2.appendChild(row);
+    }
+    document.querySelector('#time_button').addEventListener('click', (event) => {
+        document.querySelector('#time_field').innerHTML = 'Флойд: ' + timeFloid + ' мс. Дейкстра: ' + timeDijkstra + ' мс.'
+        document.querySelector('#time_button').style.display = 'none'
+    })
 }
 
 /**
@@ -443,12 +538,11 @@ const onClickDrawGraph = (event) => {
         for (let j = 1; j < table.rows.length; j++) {
             const input = table.rows[i].cells[j].firstChild;
             const weight = input.value.trim() - '' || null;
+            const from = table.rows[i].cells[0].innerHTML;
+            const to = table.rows[0].cells[j].innerHTML;
+    
+            graph.addEdge(from, to, weight);
             if (weight != null) {
-                const from = table.rows[i].cells[0].innerHTML;
-                const to = table.rows[0].cells[j].innerHTML;
-    
-                graph.addEdge(from, to, weight);
-    
                 cy.add({
                     group: 'edges',
                     data: {
@@ -468,6 +562,7 @@ const onClickDrawGraph = (event) => {
 const registerEventHandlers = () => {
     document.querySelector('#change-mode-btn').addEventListener('click', onChangeMode);
     document.querySelector('#find-min-path-btn').addEventListener('click', onClickFindMinPath);
+    document.querySelector('#find-path-floid-btn').addEventListener('click', onClickFloid);
     document.querySelector('#cancel-finding-btn').addEventListener('click', onClickCancelFinding);
     document.querySelector('#solve-dijkstra-btn').addEventListener('click', onClickDijkstra);
     document.querySelector('#clear-path-btn').addEventListener('click', clearPath);

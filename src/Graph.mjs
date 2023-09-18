@@ -94,6 +94,21 @@ export default class Graph {
     }
 
     /**
+     * Поиск кратчайшего пути по алгоритму Дейкстры для всех вершин
+     */
+    dijkstraAll() {
+        const N = this.matrix.length;
+        const result = new Array(0);
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                result.push(this.dijkstra(this.vertexes[i].label, this.vertexes[j].label));
+            }
+        }
+        
+        return result;
+    }
+
+    /**
      * Поиск кратчайшего пути по алгоритму Дейкстры
      * @param {string} from название начальной вершины
      * @param {string} to название конечной вершины
@@ -156,7 +171,7 @@ export default class Graph {
             if (cur == -1) return null;
             visitted.push(cur);
         }
-        
+
         // восстановление кратчайшего пути
         const path = [to];
         let index = toVertex.index;
@@ -166,7 +181,7 @@ export default class Graph {
             index = steps[index];
         }
         
-        return new DijkstraResult(distances[toVertex.index], path.reverse());
+        return new DijkstraResult(from, to, distances[toVertex.index], path.reverse());
     }
 
     /**
