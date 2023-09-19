@@ -130,6 +130,10 @@ export default class Graph {
             return null;
         }
 
+        if (fromVertex.label == toVertex.label) {
+            return new DijkstraResult(from, to, 0, []);
+        }
+
         const N = this.matrix.length;
         
         // минимальные расстояния до всех вершин из заданной

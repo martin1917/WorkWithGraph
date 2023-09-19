@@ -379,16 +379,18 @@ const onClickFloid = (event) => {
         row.appendChild(firstCell);
         for (let j = 0; j < graph.vertexes.length; j++) {
             const cell = document.createElement('td');
-            const div = document.createElement('label');
-            div.style.width = '40px';
-            div.style.margin = '3px';
+            const label = document.createElement('label');
+            label.style.width = '40px';
+            label.style.margin = '3px';
+            label.innerHTML = '0';
+            label.title = 'Нет пути'
             if(resFloid[i * graph.vertexes.length + j].distance != null) {
-                div.innerHTML = resFloid[i * graph.vertexes.length + j].distance
-                div.title = resFloid[i * graph.vertexes.length + j].path.join('->')
-            } else {
-                div.title = 'Нет пути'
+                label.innerHTML = resFloid[i * graph.vertexes.length + j].distance
+                if (resFloid[i * graph.vertexes.length + j].path.length != 0) {
+                    label.title = resFloid[i * graph.vertexes.length + j].path.join('->');
+                }
             }
-            cell.appendChild(div);
+            cell.appendChild(label);
             row.appendChild(cell);
         }
         table1.appendChild(row);
@@ -412,18 +414,18 @@ const onClickFloid = (event) => {
         row.appendChild(firstCell);
         for (let j = 0; j < graph.vertexes.length; j++) {
             const cell = document.createElement('td');
-            const div = document.createElement('label');
-            div.style.width = '40px';
-            div.style.margin = '3px';
+            const label = document.createElement('label');
+            label.style.width = '40px';
+            label.style.margin = '3px';
+            label.innerHTML = '0';
+            label.title = 'Нет пути'
             if(resDijkstra[i * graph.vertexes.length + j] != null) {
-                div.innerHTML =  resDijkstra[i * graph.vertexes.length + j].distance
-                div.title = resDijkstra[i * graph.vertexes.length + j].path.join('->')
-            } else {
-                div.title = 'Нет пути'
+                label.innerHTML =  resDijkstra[i * graph.vertexes.length + j].distance
+                if (resDijkstra[i * graph.vertexes.length + j].path.length != 0) {
+                    label.title = resDijkstra[i * graph.vertexes.length + j].path.join('->')
+                }
             }
-            
-
-            cell.appendChild(div);
+            cell.appendChild(label);
             row.appendChild(cell);
         }
         table2.appendChild(row);
