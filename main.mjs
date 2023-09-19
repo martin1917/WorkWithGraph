@@ -346,19 +346,26 @@ const onClickDijkstra = (event) => {
 const onClickFloid = (event) => {
     document.querySelector('#time_button').style.display = 'inline-block';
     document.querySelector('#time_field').innerHTML = '';
+
     let start = performance.now();
     const resFloid = graph.floid();
     const timeFloid = performance.now() - start;
+    timeEllapsed.floid = timeFloid;
+
     start = performance.now();
     const resDijkstra = graph.dijkstraAll();
     const timeDijkstra = performance.now() - start;
+    timeEllapsed.dijkstra = timeDijkstra;
+
     console.log(resFloid);
     console.log(resDijkstra);
     console.log(timeFloid);
     console.log(timeDijkstra);
+
     const compare = document.querySelector('#compare');
     compare.style.display = 'inline-block'
-    // обновление HTML таблицы
+
+    // Создание таблицы для Флойда
     const table1 = document.querySelector('#table_compare1');
     table1.innerHTML = '';
 
@@ -396,6 +403,7 @@ const onClickFloid = (event) => {
         table1.appendChild(row);
     }
 
+    // Создание таблицы для Дейкстры
     const table2 = document.querySelector('#table_compare2');
     table2.innerHTML = '';
     const firstRow1 = document.createElement('tr');
@@ -430,10 +438,6 @@ const onClickFloid = (event) => {
         }
         table2.appendChild(row);
     }
-    document.querySelector('#time_button').addEventListener('click', (event) => {
-        document.querySelector('#time_field').innerHTML = 'Флойд: ' + timeFloid + ' мс. Дейкстра: ' + timeDijkstra + ' мс.'
-        document.querySelector('#time_button').style.display = 'none'
-    })
 }
 
 /**
@@ -558,6 +562,11 @@ const onClickDrawGraph = (event) => {
     }
 }
 
+const onClickGetTime = (event) => {
+    document.querySelector('#time_field').innerHTML = `Флойд: ${timeEllapsed.floid} мс. </br> Дейкстра: ${timeEllapsed.dijkstra} мс.`;
+    document.querySelector('#time_button').style.display = 'none';
+}
+
 /**
  * Регистрация обработчиков нажатия кнопок
  */
@@ -567,11 +576,12 @@ const registerEventHandlers = () => {
     document.querySelector('#find-path-floid-btn').addEventListener('click', onClickFloid);
     document.querySelector('#cancel-finding-btn').addEventListener('click', onClickCancelFinding);
     document.querySelector('#solve-dijkstra-btn').addEventListener('click', onClickDijkstra);
-    document.querySelector('#clear-path-btn').addEventListener('click', clearPath);
-    document.querySelector('#log').addEventListener('click', (e) => console.log(graph));
-
+    document.querySelector('#clear-path-btn').addEventListener('click', clearPath);    
     document.querySelector('#create-graph-btn').addEventListener('click', onClickCreateGraph);
     document.querySelector('#draw-graph-btn').addEventListener('click', onClickDrawGraph);
+    document.querySelector('#time_button').addEventListener('click', onClickGetTime)
+
+    document.querySelector('#log').addEventListener('click', (e) => console.log(graph));
 }
 
 // полотно для отрисовки графов
@@ -597,6 +607,9 @@ var isMovingNodeMode = true;
 
 // начальная и конечная вершины для поиска пути
 const pathPlan = { fromVertex: null, toVertex: null };
+
+// время поиска для разных аогритмов
+const timeEllapsed = {dijkstra: null, floid: null};
 
 // граф с которым идет работа
 var graph = new Graph();
