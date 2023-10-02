@@ -88,7 +88,7 @@ function handleDoubleTapOnEdge(event) {
 }
 
 /**
- * Заполнение HTML таблицы (матрица смежности)
+ * Заполнение матрицы смежности
  */
 function drawAdjMatrix() {
     const table = document.querySelector('#table');
@@ -502,11 +502,17 @@ function handleClickDrawGraph(event) {
     }
 }
 
+/**
+ * Обработчик, срабатывающий при нажатии кнопки "загрузить граф"
+ */
 function handleClickLoadFile(e) {
     document.querySelector('#file-input').value = null;
     document.querySelector('#file-input').click();
 }
 
+/**
+ * Обработчик, срабатывающий при выборе файла для загрузки
+ */
 function handleChangeFile(event) {
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -518,7 +524,6 @@ function handleChangeFile(event) {
 
         let data = JSON.parse(reader.result);
         graph = new Graph();
-        console.log(data);
         
         for (let node of data.nodes) {
             graph.addVertex(node.name);
@@ -549,6 +554,9 @@ function handleChangeFile(event) {
     }
 }
 
+/**
+ * Обработчик, срабатывающий при нажатии кнопки "сохранить граф"
+ */
 function handleClickSaveGraph(event) {
     const nodes = cy.nodes().map(x => {
         return {
@@ -571,7 +579,13 @@ function handleClickSaveGraph(event) {
     download(json, 'json.txt', 'text/plain');
 }
 
-// https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file
+/**
+ * Сохранить данные в файл
+ * https://stackoverflow.com/questions/34156282/how-do-i-save-json-to-local-text-file
+ * @param {*} content 
+ * @param {*} fileName 
+ * @param {*} contentType 
+ */
 function download(content, fileName, contentType) {
     var a = document.createElement("a");
     var file = new Blob([content], {type: contentType});
