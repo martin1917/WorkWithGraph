@@ -1,6 +1,5 @@
-import Vertex from './Vertex.mjs'
-import DijkstraResult from './DijkstraResult.mjs'
-import FloidResult from './FloidResult.mjs'
+import Vertex from './Vertex.mjs';
+import PathInfo from './PathInfo.mjs';
 
 export default class Graph {
     constructor() {
@@ -67,7 +66,7 @@ export default class Graph {
         for (let i = 0; i < dist.length; i++) {
             for (let j = 0; j < dist.length; j++) {
                 let path = this._getPath(next, i, j);
-                allPath.push(new FloidResult(
+                allPath.push(new PathInfo(
                     this.vertexes[i].label,
                     this.vertexes[j].label,
                     path.map(i => this.vertexes[i].label),
@@ -131,7 +130,7 @@ export default class Graph {
         }
 
         if (fromVertex.label == toVertex.label) {
-            return new DijkstraResult(from, to, 0, []);
+            return new PathInfo(from, to, [], 0);
         }
 
         const N = this.matrix.length;
@@ -172,7 +171,9 @@ export default class Graph {
             }
             cur = nextVertex;
 
-            if (cur == -1) return null;
+            if (cur == -1) {
+                return new PathInfo(from, to, [], null);
+            }
             visitted.push(cur);
         }
 
@@ -185,7 +186,7 @@ export default class Graph {
             index = steps[index];
         }
         
-        return new DijkstraResult(from, to, distances[toVertex.index], path.reverse());
+        return new PathInfo(from, to, path.reverse(), distances[toVertex.index]);
     }
 
     /**

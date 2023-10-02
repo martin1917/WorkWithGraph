@@ -35,10 +35,23 @@ table, th, td {
 	border-collapse: collapse;
 }
 
-table {
-	margin-bottom: 10px;
+.all-paths {
+	display: none;
+	margin-top: 20px;
+	margin-bottom: 20px;
 }
 
-th, td {
-	font-size: 20px;
+.dijkstra-paths {
+	margin-right: 20px;
+}
+
+.title {
+	margin-bottom: 5px;
+}
+
+.paths-table-wrapper {
+	border: 1px dotted black;
+	padding: 5px;
+	max-height: 300px;
+	overflow-y: auto;
 }

@@ -15,6 +15,11 @@
     <title>Document</title>
 </head>
 <body>
+    <div class="service-btns">
+        <button id="save-graph-btn">Сохранить граф</button>
+        <button id="load-graph-btn">Загрузить граф</button>
+        <input type="file" id="file-input" style="display: none;">
+    </div>
     <p id="state-information">Перемещение вершин</p>
     <div class="main">
         <div class="visual">
@@ -22,7 +27,7 @@
             <div class="visual-buttons" style="margin-bottom: 10px;">
                 <button id="change-mode-btn">Вкл. режим "Добавление ребер"</button>
                 <button id="find-min-path-btn">Найти минимальный путь (Дейкстра)</button>
-                <button id="find-path-floid-btn">Найти пути (Флойд && Дейкстра)</button>
+                <button id="find-all-path-btn">Найти пути (Флойд && Дейкстра)</button>
                 <button id="solve-dijkstra-btn" style="display: none; color: chocolate; font-weight: bold;">Рассчитать</button>
                 <button id="cancel-finding-btn" style="display: none;">Отменить поиск</button>
                 <button id="clear-path-btn" style="display: none;">Очистить путь</button>
@@ -36,13 +41,33 @@
                 <button id="create-graph-btn">Создать граф с 'N' вершинами</button>
             </div>
             <table id="table"></table>
-            <div id="compare" style="display: none;">
-                <p>Флойд:</p>
-                <table id="table_compare1"></table>
-                <p>Дейкстра:</p>
-                <table id="table_compare2"></table>
-                <button id="time_button">Нажмите, чтобы увидеть время поиска для алгоритмов</button>
-                <div id="time_field" ></div>
+        </div>
+    </div>
+    <div class="all-paths">
+        <div class="dijkstra-paths">
+            <div class="title">[Дейкстра] Время: 0,0014 мс</div>
+            <div class="paths-table-wrapper">    
+                <table id="dijkstra-paths-table">
+                    <tr>
+                        <th style="width: 30px; padding: 5px;">Начальная вершина</th>
+                        <th style="width: 30px; padding: 5px;">Конечная вершина</th>
+                        <th style="width: 250px; padding: 5px;">Путь</th>
+                        <th style="width: 30px; padding: 5px;">Расстояние</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="floid-paths">
+            <div class="title">[Флоид] Время: 0,0004 мс</div>
+            <div class="paths-table-wrapper">
+                <table id="floid-paths-table">
+                    <tr>
+                        <th style="width: 30px; padding: 5px;">Начальная вершина</th>
+                        <th style="width: 30px; padding: 5px;">Конечная вершина</th>
+                        <th style="width: 250px; padding: 5px;">Путь</th>
+                        <th style="width: 30px; padding: 5px;">Расстояние</th>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>

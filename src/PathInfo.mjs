@@ -1,14 +1,14 @@
-export default class DijkstraResult {
+export default class PathInfo {
     /**
      * @param {string} from начальная вершина
      * @param {string} to конечная вершина
-     * @param {number} distance расстояние
      * @param {string[]} path путь
+     * @param {number} distance расстояние
      */
-    constructor(from, to, distance, path) {
+    constructor(from, to, path, distance) {
         this.from = from;
         this.to = to;
-        this.distance = distance;
         this.path = path;
+        this.distance = distance;
     }
 }
