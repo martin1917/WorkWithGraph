@@ -21,15 +21,12 @@ function handleEdgeCreated(event, sourceNode, targetNode, addedEdge) {
         alert('Введите ЦЕЛОЧИСЛЕННЫЙ вес ребра');
         addedEdge.remove();
         return;
-    }        
-    
-    // update visual graph
+    }
+
     addedEdge.data('weight', weightStr);
 
-    // update logic graph
     graph.addEdge(sourceNode.data('name'), targetNode.data('name'), weightStr - '');
-    
-    // update adj-matrix
+
     const table = document.querySelector('#table');    
     const row = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(sourceNode.data('name'));
     const col = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(targetNode.data('name'));
@@ -48,25 +45,25 @@ function handleDoubleTapOnNode(event) {
         alert('Имя вершины не может быть пустым!');
         return;
     }
-
-    // update logic graph
+    
     const updateRes = graph.updateNameVertex(oldName, name);
 
     if (!updateRes) {
         alert('Такая вершина уже есть');
         return;
     }
-
-    // update visual graph
+    
     vertex.data('name', name);
-
-    // update adj-matrix
+    
     const table = document.querySelector('#table');
     const index = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(oldName);
     table.rows[0].cells[index].innerHTML = name;
     table.rows[index].cells[0].innerHTML = name;
 }
 
+/**
+ * Обработчик, срабатывающий при двойном нажатии на ребро
+ */
 function handleDoubleTapOnEdge(event) {
     const edge = event.target;
     const oldWeight = edge.data('weight');
@@ -77,20 +74,57 @@ function handleDoubleTapOnEdge(event) {
         alert("Введите число");
         return;
     }
-
-    // update logic graph
+    
     const from = cy.elements(`node[id="${edge.data('source')}"]`).data('name');
     const to = cy.elements(`node[id="${edge.data('target')}"]`).data('name');
     graph.addEdge(from, to, weight - '');
-
-    // update visual graph
+    
     edge.data('weight', weight);
-
-    // update adj-matrix
+    
     const table = document.querySelector('#table');
     const i = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(from);
     const j = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(to);
     table.rows[i].cells[j].firstChild.value = weight;
+}
+
+/**
+ * Заполнение HTML таблицы (матрица смежности)
+ */
+function drawAdjMatrix() {
+    const table = document.querySelector('#table');
+    table.innerHTML = '';
+
+    const firstRow = document.createElement('tr');
+    firstRow.appendChild(document.createElement('th'));    
+    for (let i = 0; i < graph.matrix.length; i++) {
+        const head = document.createElement('th');
+        head.innerHTML = `${graph.vertexes[i].label}`;
+        firstRow.appendChild(head);
+    }
+
+    table.appendChild(firstRow);
+
+    for (let i = 0; i < graph.matrix.length; i++) {
+        const row = document.createElement('tr');
+        const firstCell = document.createElement('th');
+        firstCell.innerHTML = `${graph.vertexes[i].label}`;
+        row.appendChild(firstCell);
+        for (let j = 0; j < graph.matrix.length; j++) {
+            const cell = document.createElement('td');
+            const input = document.createElement('input');
+            input.style.width = '40px';
+            input.style.margin = '3px';
+            input.value = graph.getWeight(graph.vertexes[i].label, graph.vertexes[j].label) || '';
+
+            if (i == j) {
+                input.setAttribute('disabled', true);
+            }
+
+            cell.appendChild(input);
+            row.appendChild(cell);
+        }
+        table.appendChild(row);
+    }
 }
 
 /**
@@ -109,52 +143,14 @@ function createContextMenu() {
                     const target = event.target || event.cyTarget;
 
                     if (target.isNode()) {
-                        // remove from logic graph
                         graph.removeVertex(target.data('name'));
-                        
-                        // update adj-matrix
-                        const table = document.querySelector('#table');
-                        table.innerHTML = '';
-                    
-                        const firstRow = document.createElement('tr');
-                        firstRow.appendChild(document.createElement('th'));    
-                        for (let i = 0; i < graph.matrix.length; i++) {
-                            const head = document.createElement('th');
-                            head.innerHTML = `${graph.vertexes[i].label}`;
-                            firstRow.appendChild(head);
-                        }
-                    
-                        table.appendChild(firstRow);
-
-                        for (let i = 0; i < graph.matrix.length; i++) {
-                            const row = document.createElement('tr');
-                            const firstCell = document.createElement('th');
-                            firstCell.innerHTML = `${graph.vertexes[i].label}`;
-                            row.appendChild(firstCell);
-                            for (let j = 0; j < graph.matrix.length; j++) {
-                                const cell = document.createElement('td');
-                                const input = document.createElement('input');
-                                input.style.width = '40px';
-                                input.style.margin = '3px';
-                                input.value = graph.getWeight(graph.vertexes[i].label, graph.vertexes[j].label) || '';
-                    
-                                if (i == j) {
-                                    input.setAttribute('disabled', true);
-                                }
-                    
-                                cell.appendChild(input);
-                                row.appendChild(cell);
-                            }
-                            table.appendChild(row);
-                        }
+                        drawAdjMatrix();
                     } 
                     else if (target.isEdge()) {
-                        // remove from logic graph
                         const from = cy.elements(`node[id="${target.data('source')}"]`).data('name');
                         const to = cy.elements(`node[id="${target.data('target')}"]`).data('name');
                         graph.removeEdge(from, to);
-
-                        // update adj-matrix
+                        
                         const row = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(from);
                         const col = [...table.rows[0].cells].map(x => x.innerHTML).indexOf(to);
                         table.rows[row].cells[col].firstChild.value = '';
@@ -177,8 +173,7 @@ function createContextMenu() {
 
                     const data = { group: 'nodes', name: name };                    
                     const pos = event.position || event.cyPosition;
-
-                    // add to logic graph
+                    
                     const addResult = graph.addVertex(name);
 
                     if (!addResult) {
@@ -186,7 +181,6 @@ function createContextMenu() {
                         return;
                     }
                     
-                    // add to visual graph
                     cy.add({
                         data: data,
                         position: {
@@ -195,28 +189,10 @@ function createContextMenu() {
                         }
                     });
                     
-                    // update adj-matrix
                     const table = document.querySelector('#table');
 
                     if (table.rows.length == 0) {
-                        const firstRow = document.createElement("tr");
-                        firstRow.appendChild(document.createElement("th"));
-                        const headCell = document.createElement("th");
-                        headCell.innerHTML = name;
-                        firstRow.appendChild(headCell);
-                        table.appendChild(firstRow);                            
-                        const row = document.createElement("tr");
-                        const headRow = document.createElement("th");
-                        headRow.innerHTML = name;                            
-                        row.appendChild(headRow);
-                        const cell = document.createElement("td");
-                        const input = document.createElement('input');
-                        input.style.width = '40px';
-                        input.style.margin = '3px';
-                        input.setAttribute('disabled', true);
-                        cell.appendChild(input);
-                        row.appendChild(cell);
-                        table.appendChild(row);
+                        drawAdjMatrix();
                         return;
                     }
 
@@ -262,7 +238,7 @@ function createContextMenu() {
 }
 
 /**
- * Изменении режима (добавление ребер <-> перемещение вершин)
+ * Обработчик, срабатывающий при изменении режима (добавление ребер <-> перемещение вершин)
  */
 function handleChangeMode(event) {
     if (isMovingNodeMode) {
@@ -322,6 +298,7 @@ function handleTapOnNode(event) {
 function handleClickFindMinPath (event) {
     cy.nodes().lock();
     cy.addListener('tap', 'node', handleTapOnNode);
+    
     document.querySelector('#state-information').innerHTML = 'Выберите первую вершину';    
 
     document.querySelector('#solve-dijkstra-btn').style.display = 'inline-block';
@@ -358,13 +335,16 @@ function handleClickCancelFinding(event) {
  */
 function handleClickDijkstra(event) {
     if (pathPlan.fromVertex != null && pathPlan.toVertex != null) {
-        const res = graph.dijkstra(pathPlan.fromVertex.data('name'), pathPlan.toVertex.data('name'));
+        const from = pathPlan.fromVertex.data('name');
+        const to = pathPlan.toVertex.data('name');
+        const res = graph.dijkstra(from, to);
+                
         if (res.distance == null) {
-            document.querySelector('#state-information').innerHTML = `Такого пути (${pathPlan.fromVertex.data('name')} -> ${pathPlan.toVertex.data('name')}) не существует`;
+            document.querySelector('#state-information').innerHTML = `Такого пути (${from} -> ${to}) не существует`;
             return;
         }
 
-        document.querySelector('#state-information').innerHTML = `Мин. расстояние (${pathPlan.fromVertex.data('name')} -> ${pathPlan.toVertex.data('name')}) = ${res.distance}`;
+        document.querySelector('#state-information').innerHTML = `Мин. расстояние (${from} -> ${to}) = ${res.distance}`;
 
         for (let i = 0; i < res.path.length; i++) {
             const fromVertex = cy.elements(`node[name="${res.path[i]}"]`);
@@ -461,6 +441,8 @@ function handleClickCreateGraph (event) {
         alert(`N = ${n} (1 <= N <= 10) !!!`);
         return;
     }
+
+    document.querySelector('.all-paths').style.display = 'none';
     
     // create logic graph
     graph = new Graph();
@@ -468,40 +450,7 @@ function handleClickCreateGraph (event) {
         graph.addVertex(`${i}`);
     }
 
-    // create adj-matrixd
-    const table = document.querySelector('#table');
-    table.innerHTML = '';
-
-    const firstRow = document.createElement('tr');
-    firstRow.appendChild(document.createElement('th'));    
-    for (let i = 1; i <= n; i++) {
-        const head = document.createElement('th');
-        head.innerHTML = `${i}`;
-        firstRow.appendChild(head);
-    }
-
-    table.appendChild(firstRow);
-
-    for (let i = 1; i <= n; i++) {
-        const row = document.createElement('tr');
-        const firstCell = document.createElement('th');
-        firstCell.innerHTML = `${i}`;
-        row.appendChild(firstCell);
-        for (let j = 1; j <= n; j++) {
-            const cell = document.createElement('td');
-            const input = document.createElement('input');
-            input.style.width = '40px';
-            input.style.margin = '3px';
-
-            if (i == j) {
-                input.setAttribute('disabled', true);
-            }
-
-            cell.appendChild(input);
-            row.appendChild(cell);
-        }
-        table.appendChild(row);
-    }
+    drawAdjMatrix();
 }
 
 /**
@@ -565,6 +514,7 @@ function handleChangeFile(event) {
 
     reader.onload = () => {
         cy.elements().remove();
+        document.querySelector('.all-paths').style.display = 'none';
 
         let data = JSON.parse(reader.result);
         graph = new Graph();
@@ -594,39 +544,7 @@ function handleChangeFile(event) {
         }
         
         if (data.nodes.length > 0) {
-            const table = document.querySelector('#table');
-            table.innerHTML = '';
-
-            const firstRow = document.createElement('tr');
-            firstRow.appendChild(document.createElement('th'));
-            for (let i = 0; i < data.nodes.length; i++) {
-                const cellHead = document.createElement('th');
-                cellHead.innerHTML = `${data.nodes[i].name}`;
-                firstRow.appendChild(cellHead);
-            }
-            table.appendChild(firstRow);
-
-            for (let i = 0; i < data.nodes.length; i++) {
-                const row = document.createElement('tr');
-                const rowHead = document.createElement('th');
-                rowHead.innerHTML = `${data.nodes[i].name}`;
-                row.appendChild(rowHead);
-                for (let j = 0; j < data.nodes.length; j++) {
-                    const cell = document.createElement('td');
-                    const input = document.createElement('input');
-                    input.style.width = '40px';
-                    input.style.margin = '3px';
-                    input.value = graph.getWeight(data.nodes[i].name, data.nodes[j].name);
-                    
-                    if (i == j) {
-                        input.setAttribute('disabled', true);
-                    }
-
-                    cell.appendChild(input);
-                    row.appendChild(cell);
-                }
-                table.appendChild(row);
-            }
+            drawAdjMatrix();
         }
     }
 }
@@ -715,9 +633,6 @@ var isMovingNodeMode = true;
 
 // начальная и конечная вершины для поиска пути
 const pathPlan = { fromVertex: null, toVertex: null };
-
-// время поиска для разных аогритмов
-const timeEllapsed = {dijkstra: null, floid: null};
 
 // граф с которым идет работа
 var graph = new Graph();

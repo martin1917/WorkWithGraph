@@ -2,12 +2,11 @@
 	color: hotpink;
 	font-size: 20px;
 	font-weight: bold;
-	border: 1px black dotted;	
+	border: 1px black dotted;
 	padding: 20px;
 }
 
 .main {
-	border: 1px black dotted;
 	margin-bottom: 10px;
 	display: flex;
 }	
@@ -52,6 +51,6 @@ table, th, td {
 .paths-table-wrapper {
 	border: 1px dotted black;
 	padding: 5px;
-	max-height: 300px;
+	max-height: 450px;
 	overflow-y: auto;
 }
